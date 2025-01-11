@@ -1,4 +1,4 @@
-# Insert in sorted linked # Insert in Sorted Linked List
+# Insert in sorted linked
 
 ## Requirements
 
