@@ -1,13 +1,9 @@
 #!/usr/bin/python3
-"""
-Task - Script that reads stdin line by line and computes metrics
-"""
-
+""" parse input """
 import sys
 
-
 if __name__ == "__main__":
-    st_code = {
+    status_codes = {
         "200": 0,
         "301": 0,
         "400": 0,
@@ -17,34 +13,33 @@ if __name__ == "__main__":
         "405": 0,
         "500": 0,
     }
-    count = 1
-    file_size = 0
+    total_lines = 0
+    total_size = 0
 
-    def parse_line(line):
-        """Read, parse and grab data"""
-        try:
-            parsed_line = line.split()
-            status_code = parsed_line[-2]
-            if status_code in st_code.keys():
-                st_code[status_code] += 1
-            return int(parsed_line[-1])
-        except Exception:
-            return 0
-
-    def print_stats():
-        """print stats in ascending order"""
-        print("File size: {}".format(file_size))
-        for key in sorted(st_code.keys()):
-            if st_code[key]:
-                print("{}: {}".format(key, st_code[key]))
+    def print_statistics():
+        """Prints the accumulated statistics"""
+        print(f"File size: {total_size}")
+        for code, count in sorted(status_codes.items()):
+            if count > 0:
+                print(f"{code}: {count}")
 
     try:
         for line in sys.stdin:
-            file_size += parse_line(line)
-            if count % 10 == 0:
-                print_stats()
-            count += 1
+            total_lines += 1
+            parts = line.split()
+            if len(parts) > 2:
+                try:
+                    size = int(parts[-1])
+                    total_size += size
+                except ValueError:
+                    continue
+                code = parts[-2]
+                if code in status_codes:
+                    status_codes[code] += 1
+            if total_lines % 10 == 0:
+                print_statistics()
     except KeyboardInterrupt:
-        print_stats()
+        print_statistics()
         raise
-    print_stats()
+    finally:
+        print_statistics()
