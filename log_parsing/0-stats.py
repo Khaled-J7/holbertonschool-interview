@@ -1,47 +1,39 @@
 #!/usr/bin/python3
-"""Log parsing script"""
-
+"""a script that reads stdin line by line and computes metrics"""
 import sys
 
-# Dictionary to store count of status codes
-status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
-total_size = 0  # Variable to store total file size
-line_count = 0  # Counter to track number of processed lines
+if __name__ == "__main__":
+    status_code = {
+        "200": 0,
+        "301": 0,
+        "400": 0,
+        "401": 0,
+        "403": 0,
+        "404": 0,
+        "405": 0,
+        "500": 0,
+    }
+    numb_lines = 0
+    tot_size = 0
 
-try:
-    for line in sys.stdin:
-        try:
-            parts = line.split()
-            if len(parts) < 7:
-                continue  # Skip invalid lines
+    def print_statistics():
+        """a function that prints statistics of the log"""
+        print(f"File size: {tot_size}")
+        for code, count in sorted(status_code.items()):
+            if count > 0:
+                print(f"{code}: {count}")
 
-            status = int(parts[-2])  # Extract status code
-            size = int(parts[-1])  # Extract file size
-
-            # Update total file size
-            total_size += size
-
-            # Update status code count
-            if status in status_codes:
-                status_codes[status] += 1
-
-            line_count += 1
-
-            # Print statistics every 10 lines
-            if line_count % 10 == 0:
-                print("File size:", total_size)
-                for code in sorted(status_codes.keys()):
-                    if status_codes[code] > 0:
-                        print("{}: {}".format(code, status_codes[code]))
-
-        except Exception:
-            continue  # Ignore lines with unexpected format
-
-except KeyboardInterrupt:
-    pass  # Handle Ctrl+C gracefully
-
-# Print final statistics after termination
-print("File size:", total_size)
-for code in sorted(status_codes.keys()):
-    if status_codes[code] > 0:
-        print("{}: {}".format(code, status_codes[code]))
+    try:
+        for line in sys.stdin:
+            numb_lines += 1
+            words = line.split(" ")
+            if len(words) > 2:
+                file_size = int(words[-1])
+                tot_size += file_size
+                code = words[-2]
+                if code in status_code:
+                    status_code[code] += 1
+                if numb_lines % 10 == 0:
+                    print_statistics()
+    finally:
+        print_statistics()
