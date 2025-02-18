@@ -1,52 +1,31 @@
-#include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
-#include "list.h"
+#include "lists.h"
 
-/**
- * main - check the code for Holberton School students.
- *
- * Return: Always 0.
- */
 int main(void)
 {
-    listint_t *head;
-    listint_t *current;
-    listint_t *temp;
-    int i;
+    listint_t *head = NULL;
+    listint_t *node;
 
-    head = NULL;
-    add_nodeint(&head, 0);
-    add_nodeint(&head, 1);
-    add_nodeint(&head, 2);
-    add_nodeint(&head, 3);
+    /* Create a linked list: 1 -> 2 -> 3 -> 4 -> 5 */
+    add_nodeint(&head, 5);
     add_nodeint(&head, 4);
-    add_nodeint(&head, 98);
-    add_nodeint(&head, 402);
-    add_nodeint(&head, 1024);
-    print_listint(head);
+    add_nodeint(&head, 3);
+    add_nodeint(&head, 2);
+    add_nodeint(&head, 1);
 
-    if (check_cycle(head) == 0)
-        printf("Linked list has no cycle\n");
-    else if (check_cycle(head) == 1)
-        printf("Linked list has a cycle\n");
+    /* Check for cycle (no cycle) */
+    printf("Linked list has %s\n", check_cycle(head) ? "a cycle" : "no cycle");
 
-    current = head;
-    for (i = 0; i < 4; i++)
-        current = current->next;
-    temp = current->next;
-    current->next = head;
+    /* Create a cycle: 5 -> 3 */
+    node = head;
+    while (node->next != NULL)
+        node = node->next;
+    node->next = head->next->next;
 
-    if (check_cycle(head) == 0)
-        printf("Linked list has no cycle\n");
-    else if (check_cycle(head) == 1)
-        printf("Linked list has a cycle\n");
+    /* Check for cycle (cycle exists) */
+    printf("Linked list has %s\n", check_cycle(head) ? "a cycle" : "no cycle");
 
-    current = head;
-    for (i = 0; i < 4; i++)
-        current = current->next;
-    current->next = temp;
-
+    /* Free the list (avoid memory leaks) */
     free_listint(head);
 
     return (0);
