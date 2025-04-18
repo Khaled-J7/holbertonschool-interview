@@ -1,63 +1,62 @@
 #!/usr/bin/node
+// Script to print all characters from a Star Wars movie
+
 const request = require('request');
+const movieId = process.argv[2];
 
-// Function to get movie characters
-function getMovieCharacters (movieId) {
-  // Define the base URL for the Star Wars API
-  const baseUrl = 'https://swapi.dev/api/films/';
+if (!movieId) {
+  console.error('Please provide a movie ID');
+  process.exit(1);
+}
 
-  // Construct the URL for the given movie ID
-  const movieUrl = `${baseUrl}${movieId}/`;
+const filmUrl = `https://swapi-api.hbtn.io/api/films/${movieId}/`;
 
-  // Fetch movie details from the API
-  request(movieUrl, (error, response, body) => {
+// First, get the film data to extract the characters URLs
+request(filmUrl, (error, response, body) => {
+  if (error) {
+    console.error('Error fetching film data:', error);
+    process.exit(1);
+  }
+
+  if (response.statusCode !== 200) {
+    console.error(`Error: Status Code ${response.statusCode}`);
+    process.exit(1);
+  }
+
+  const filmData = JSON.parse(body);
+  const characterUrls = filmData.characters;
+
+  // Using recursive function to fetch characters sequentially to maintain order
+  fetchCharactersInOrder(characterUrls, 0);
+});
+
+/**
+ * Fetches character data in order from an array of URLs
+ * @param {Array} urls - Array of character URLs
+ * @param {Number} index - Current index in the array
+ */
+function fetchCharactersInOrder(urls, index) {
+  // Base case: all characters have been processed
+  if (index >= urls.length) {
+    return;
+  }
+
+  // Fetch the character at the current index
+  request(urls[index], (error, response, body) => {
     if (error) {
-      console.error('Error fetching movie data:', error);
-      return;
+      console.error('Error fetching character data:', error);
+      process.exit(1);
     }
 
     if (response.statusCode !== 200) {
-      console.error('Failed to fetch movie data:', response.statusCode);
-      return;
+      console.error(`Error: Status Code ${response.statusCode}`);
+      process.exit(1);
     }
 
-    const movieData = JSON.parse(body);
+    const characterData = JSON.parse(body);
+    console.log(characterData.name);
 
-    // Get the list of characters from the movie data
-    const characterUrls = movieData.characters;
-
-    // Fetch and print each character's name
-    characterUrls.forEach(characterUrl => {
-      request(characterUrl, (error, response, body) => {
-        if (error) {
-          console.error('Error fetching character data:', error);
-          return;
-        }
-
-        if (response.statusCode !== 200) {
-          console.error('Failed to fetch character data:', response.statusCode);
-          return;
-        }
-
-        const characterData = JSON.parse(body);
-        console.log(characterData.name);
-      });
-    });
+    // Process the next character
+    fetchCharactersInOrder(urls, index + 1);
   });
 }
-
-// Check if the script is being run with the correct arguments
-if (process.argv.length !== 3) {
-  console.log('Usage: node script.js <movie_id>');
-  process.exit(1);
-}
-
-// Get the movie ID from the command line arguments
-const movieId = process.argv[2];
-if (isNaN(movieId)) {
-  console.log('Movie ID should be a number');
-  process.exit(1);
-}
-
-// Call the function to get and print character names
-getMovieCharacters(movieId);
