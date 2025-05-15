@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """
-Module to query the Reddit API and count occurrences of keywords in hot post titles
+Module to query the Reddit API and count occurrences of keywords in hot post
+titles
 """
 import requests
 
@@ -39,7 +40,11 @@ def count_words(subreddit, word_list, after=None, word_counts=None):
 
     # Make request to Reddit API
     url = f"https://www.reddit.com/r/{subreddit}/hot.json"
-    response = requests.get(url, headers=headers, params=params, allow_redirects=False)
+    response = requests.get(
+        url, headers=headers,
+        params=params,
+        allow_redirects=False
+    )
 
     # Check if the subreddit is valid
     if response.status_code != 200:
