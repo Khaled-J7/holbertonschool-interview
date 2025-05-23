@@ -1,162 +1,107 @@
 #include "binary_trees.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
- * get_heap_size - Calculate the number of nodes in the heap
- * @root: Pointer to the root node
- * 
- * Return: Number of nodes in the heap
+ * checkHeight - Check the height of a binary tree
+ * @tree: Pointer to the node to measures the height
+ *
+ * Return: The height of the tree starting at @node
  */
-static size_t get_heap_size(heap_t *root)
+static size_t checkHeight(const binary_tree_t *tree)
 {
-    if (!root)
-        return (0);
-    
-    /* Recursively count nodes in left and right subtrees, plus current node */
-    return (1 + get_heap_size(root->left) + get_heap_size(root->right));
+  size_t h_left;
+  size_t h_right;
+
+  h_left = tree->left ? 1 + checkHeight(tree->left) : 0;
+  h_right = tree->right ? 1 + checkHeight(tree->right) : 0;
+  return (h_left > h_right ? h_left : h_right);
 }
 
 /**
- * get_last_node - Find the last node in level-order traversal
- * @root: Pointer to the root node
- * @index: Current index in level-order (1-based)
- * @size: Total size of the heap
- * 
- * This function finds the rightmost node in the bottom level.
- * We use the mathematical property that for a complete binary tree,
- * the last node is at position 'size' in level-order numbering.
- * 
- * Return: Pointer to the last node
+ * preorderTraversal - goes through a binary tree
+ *                     using pre-order traversal
+ * @root: pointer root of the tree
+ * @node: pointer node in the tree
+ * @h: height of tree
+ * @l: layer on the tree
  */
-static heap_t *get_last_node(heap_t *root, size_t index, size_t size)
+void preorderTraversal(heap_t *root, heap_t **node, size_t h, size_t l)
 {
-    if (!root || index > size)
-        return (NULL);
-    
-    /* If we've reached the target position, this is our last node */
-    if (index == size)
-        return (root);
-    
-    /* 
-     * For level-order traversal in a complete binary tree:
-     * - Left child is at position 2*index
-     * - Right child is at position 2*index + 1
-     * We search the subtree that could contain our target
-     */
-    if (2 * index <= size)
-    {
-        heap_t *left_result = get_last_node(root->left, 2 * index, size);
-        if (left_result)
-            return (left_result);
-    }
-    
-    if (2 * index + 1 <= size)
-    {
-        heap_t *right_result = get_last_node(root->right, 2 * index + 1, size);
-        if (right_result)
-            return (right_result);
-    }
-    
-    return (NULL);
+  if (!root)
+    return;
+  if (h == l)
+    *node = root;
+
+  l++;
+  if (root->left)
+    preorderTraversal(root->left, node, h, l);
+  if (root->right)
+    preorderTraversal(root->right, node, h, l);
 }
 
 /**
- * heapify_down - Restore heap property by moving node down the tree
- * @node: Node to start heapifying from
- * 
- * This is the heart of maintaining the max heap property.
- * We compare the current node with its children and swap with
- * the larger child if necessary, then continue down the tree.
+ * sort - binary tree Heap Sort
+ * @tmp: pointer to the heap root
+ * Return: pointer to last node
  */
-static void heapify_down(heap_t *node)
+heap_t *sort(heap_t *tmp)
 {
-    heap_t *largest = node;
-    heap_t *temp;
-    int temp_val;
-    
-    if (!node)
-        return;
-    
-    /* Find the largest among node and its children */
-    if (node->left && node->left->n > largest->n)
-        largest = node->left;
-    
-    if (node->right && node->right->n > largest->n)
-        largest = node->right;
-    
-    /* If the largest is not the current node, we need to swap */
-    if (largest != node)
+  int n;
+
+  while (tmp->left || tmp->right)
+  {
+    if (!tmp->right || tmp->left->n > tmp->right->n)
     {
-        /* Swap the values (not the nodes themselves) */
-        temp_val = node->n;
-        node->n = largest->n;
-        largest->n = temp_val;
-        
-        /* Continue heapifying down from the swapped position */
-        heapify_down(largest);
+      n = tmp->n;
+      tmp->n = tmp->left->n;
+      tmp->left->n = n;
+      tmp = tmp->left;
     }
+    else if (!tmp->left || tmp->left->n < tmp->right->n)
+    {
+      n = tmp->n;
+      tmp->n = tmp->right->n;
+      tmp->right->n = n;
+      tmp = tmp->right;
+    }
+  }
+  return (tmp);
 }
 
 /**
- * heap_extract - Extract the root node of a Max Binary Heap
- * @root: Double pointer to the root node of the heap
- * 
- * This function implements the complete heap extraction algorithm:
- * 1. Handle edge cases (empty heap)
- * 2. Store the maximum value to return
- * 3. Find and remove the last node
- * 4. Replace root with last node's value
- * 5. Restore heap property through heapification
- * 
- * Return: Value that was stored in the root node, or 0 on failure
+ * heap_extract - extracts the root node of a Max Binary Heap
+ * @root: double pointer to the root of the heap
+ * Return: the value stored in the root node, or 0.
  */
 int heap_extract(heap_t **root)
 {
-    heap_t *last_node, *parent;
-    int extracted_value;
-    size_t heap_size;
-    
-    /* Handle edge case: empty heap */
-    if (!root || !*root)
-        return (0);
-    
-    /* Store the value we're extracting (the maximum) */
-    extracted_value = (*root)->n;
-    
-    /* Calculate heap size to find the last node */
-    heap_size = get_heap_size(*root);
-    
-    /* Special case: only one node in the heap */
-    if (heap_size == 1)
-    {
-        free(*root);
-        *root = NULL;
-        return (extracted_value);
-    }
-    
-    /* Find the last node in level-order traversal */
-    last_node = get_last_node(*root, 1, heap_size);
-    if (!last_node)
-        return (0);
-    
-    /* Replace root's value with last node's value */
-    (*root)->n = last_node->n;
-    
-    /* Remove the last node from the tree */
-    parent = last_node->parent;
-    if (parent)
-    {
-        /* Determine if last_node is left or right child and remove it */
-        if (parent->left == last_node)
-            parent->left = NULL;
-        else
-            parent->right = NULL;
-    }
-    
-    free(last_node);
-    
-    /* Restore the heap property by heapifying down from the root */
-    heapify_down(*root);
-    
-    return (extracted_value);
+  int value;
+  heap_t *tmp, *node;
+
+  if (!root || !*root)
+    return (0);
+
+  tmp = *root;
+  value = tmp->n;
+
+  if (!tmp->left && !tmp->right)
+  {
+    *root = NULL;
+    free(tmp);
+    return (value);
+  }
+
+  preorderTraversal(tmp, &node, checkHeight(tmp), 0);
+  tmp = sort(tmp);
+  tmp->n = node->n;
+
+  if (node->parent->right)
+    node->parent->right = NULL;
+  else
+    node->parent->left = NULL;
+
+  free(node);
+  return (value);
 }
