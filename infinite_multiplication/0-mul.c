@@ -1,220 +1,98 @@
 #include "holberton.h"
+#include <stdlib.h>
 
 /**
- * _putchar - Writes the character c to stdout.
- * @c: The character to print.
- *
- * Return: On success 1.
- * On error, -1 is returned, and errno is set appropriately.
- * (Note: This function is provided by the testing environment.)
+ * is_digit - checks if a string contains only digits.
+ * @str: string to be checked.
+ * Return: 1 if string contains only digits, otherwise 0.
  */
-int _putchar(char c)
+int is_digit(char *str)
 {
-  /*
-   * This is a dummy implementation for compilation purposes.
-   * The actual _putchar function will be linked during testing.
-   */
-  (void)c; /* Suppress unused parameter warning */
+  int i = 0;
+
+  while (str[i])
+  {
+    if (str[i] < '0' || str[i] > '9')
+      return (0);
+    i++;
+  }
   return (1);
 }
 
 /**
- * _strlen - Calculates the length of a string.
- * @s: The string to measure.
- *
- * Return: The length of the string.
+ * print_error - prints "Error" and exits with code 98.
  */
-int _strlen(char *s)
+void print_error(void)
 {
-  int len = 0;
+  char *msg = "Error";
+  int i;
 
-  while (s[len] != '\0')
-  {
-    len++;
-  }
-  return (len);
-}
-
-/**
- * _is_digit - Checks if a character is a digit.
- * @c: The character to check.
- *
- * Return: 1 if the character is a digit, 0 otherwise.
- */
-int _is_digit(char c)
-{
-  return (c >= '0' && c <= '9');
-}
-
-/**
- * _print_error_and_exit - Prints "Error" to stdout and exits with status 98.
- */
-void _print_error_and_exit(void)
-{
-  char *err = "Error\n";
-  int i = 0;
-
-  while (err[i] != '\0')
-  {
-    _putchar(err[i]);
-    i++;
-  }
+  for (i = 0; msg[i]; i++)
+    _putchar(msg[i]);
+  _putchar('\n');
   exit(98);
 }
 
 /**
- * _initialize_result_buffer - Initializes a character buffer with '0's
- * and a null terminator.
- * @buffer: The buffer to initialize.
- * @len: The length of the buffer (excluding the null terminator).
+ * _len - returns the length of a string.
+ * @str: string to measure.
+ * Return: length of the string.
  */
-void _initialize_result_buffer(char *buffer, int len)
+int _len(char *str)
 {
-  int i;
+  int len = 0;
 
-  for (i = 0; i < len; i++)
-  {
-    buffer[i] = '0';
-  }
-  buffer[len] = '\0';
+  while (str[len])
+    len++;
+  return (len);
 }
 
 /**
- * _multiply - Multiplies two positive numbers represented as strings.
- * @num1: The first number string.
- * @num2: The second number string.
- *
- * This function performs long multiplication, allocates memory for the result,
- * calculates the product, and prints the result to stdout.
- * It handles memory allocation failures by calling _print_error_and_exit.
- */
-void _multiply(char *num1, char *num2)
-{
-  int len1, len2, total_len;
-  char *result;
-  int i, j, product, carry;
-
-  len1 = _strlen(num1);
-  len2 = _strlen(num2);
-  total_len = len1 + len2;
-
-  /* Allocate memory for the result buffer */
-  result = malloc(sizeof(char) * (total_len + 1));
-  if (result == NULL)
-    _print_error_and_exit(); /* Handle malloc failure */
-
-  /* Initialize the result buffer with '0's */
-  _initialize_result_buffer(result, total_len);
-
-  /* Iterate through num2 from right to left (least significant digit first) */
-  for (i = len2 - 1; i >= 0; i--)
-  {
-    int digit2 = num2[i] - '0'; /* Convert char digit to int */
-    carry = 0;
-    /*
-     * current_pos_in_result tracks the starting position in the result buffer
-     * for the current partial product. It shifts left with each digit of num2,
-     * simulating the shifting of partial products in long multiplication.
-     */
-    int current_pos_in_result = (total_len - 1) - (len2 - 1 - i);
-
-    /* Iterate through num1 from right to left */
-    for (j = len1 - 1; j >= 0; j--)
-    {
-      int digit1 = num1[j] - '0'; /* Convert char digit to int */
-      /*
-       * Calculate the product of the two digits, add any existing digit
-       * at the current position in the result buffer, and add the carry
-       * from the previous multiplication step.
-       */
-      product = digit1 * digit2 + (result[current_pos_in_result] - '0') + carry;
-      carry = product / 10;                                 /* Calculate new carry */
-      result[current_pos_in_result] = (product % 10) + '0'; /* Store the current digit */
-      current_pos_in_result--;                              /* Move to the left in result buffer */
-    }
-
-    /* Add any remaining carry to the next position(s) in the result buffer */
-    while (carry > 0)
-    {
-      /*
-       * Add the carry to the digit at current_pos_in_result (which might be '0'
-       * if it's beyond the initial length of the partial product).
-       */
-      product = (result[current_pos_in_result] - '0') + carry;
-      result[current_pos_in_result] = (product % 10) + '0';
-      carry = product / 10;
-      current_pos_in_result--;
-    }
-  }
-
-  /* Find the first non-zero digit to handle leading zeros in the final result */
-  int first_digit = 0;
-  while (result[first_digit] == '0' && first_digit < total_len - 1)
-  {
-    first_digit++;
-  }
-
-  /* Print the final result */
-  for (i = first_digit; i < total_len; i++)
-  {
-    _putchar(result[i]);
-  }
-  _putchar('\n'); /* Print a newline character at the end */
-
-  free(result); /* Free the allocated memory */
-}
-
-/**
- * main - Entry point for the infinite multiplication program.
- * @argc: The number of command-line arguments.
- * @argv: An array of strings containing the arguments.
- *
- * Return: 0 on successful execution, 98 on error.
+ * main - multiplies two numbers and prints the result.
+ * @argc: number of arguments.
+ * @argv: array of argument values.
+ * Return: 0 on success, or exit with code 98 on error.
  */
 int main(int argc, char *argv[])
 {
-  char *num1_str;
-  char *num2_str;
-  int i;
+  char *num1, *num2;
+  int len_num1, len_num2, total_len, i, j, mul, sum, *result;
 
-  /* Check for correct number of arguments */
-  if (argc != 3)
+  if (argc != 3 || !is_digit(argv[1]) || !is_digit(argv[2]))
+    print_error();
+  num1 = argv[1];
+  num2 = argv[2];
+
+  len_num1 = _len(num1);
+  len_num2 = _len(num2);
+  total_len = len_num1 + len_num2;
+
+  result = malloc(total_len * sizeof(int));
+  if (result == NULL)
+    print_error();
+  for (i = 0; i < total_len; i++)
+    result[i] = 0;
+  for (i = len_num1 - 1; i >= 0; i--)
   {
-    _print_error_and_exit();
-  }
-
-  num1_str = argv[1];
-  num2_str = argv[2];
-
-  /* Validate num1_str: ensure it contains only digits */
-  for (i = 0; num1_str[i] != '\0'; i++)
-  {
-    if (!_is_digit(num1_str[i]))
+    for (j = len_num2 - 1; j >= 0; j--)
     {
-      _print_error_and_exit();
+      mul = (num1[i] - '0') * (num2[j] - '0');
+      sum = mul + result[i + j + 1];
+      result[i + j + 1] = sum % 10;
+      result[i + j] += sum / 10;
     }
   }
-
-  /* Validate num2_str: ensure it contains only digits */
-  for (i = 0; num2_str[i] != '\0'; i++)
-  {
-    if (!_is_digit(num2_str[i]))
-    {
-      _print_error_and_exit();
-    }
-  }
-
-  /* Handle edge case: if one or both numbers are "0", the result is "0" */
-  if ((_strlen(num1_str) == 1 && num1_str[0] == '0') ||
-      (_strlen(num2_str) == 1 && num2_str[0] == '0'))
-  {
+  i = 0;
+  while (i < total_len && result[i] == 0)
+    i++;
+  if (i == total_len)
     _putchar('0');
-    _putchar('\n');
-    return (0);
+  else
+  {
+    for (; i < total_len; i++)
+      _putchar(result[i] + '0');
   }
-
-  /* Perform the multiplication */
-  _multiply(num1_str, num2_str);
-
+  _putchar('\n');
+  free(result);
   return (0);
 }
